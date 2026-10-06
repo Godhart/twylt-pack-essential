@@ -1,0 +1,55 @@
+{
+  "format_version": "1.8",
+  "name": "echo",
+  "version": "0.1.1",
+  "description": "Return the request text unchanged.",
+  "requirements": {
+    "tool": "pip",
+    "format": "requirements.txt",
+    "content": "twylt==1.0.0\npydantic>=2,<3\n"
+  },
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "text": {
+        "description": "Text to return unchanged, including whitespace and line breaks.",
+        "title": "Text",
+        "type": "string"
+      }
+    },
+    "required": [
+      "text"
+    ],
+    "title": "EchoInputTWYLTStrict",
+    "type": "object",
+    "$id": "echo.input",
+    "x-schema-version": "1.0.0"
+  },
+  "outputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "text": {
+        "description": "Exact text from the request.",
+        "title": "Text",
+        "type": "string"
+      }
+    },
+    "required": [
+      "text"
+    ],
+    "title": "EchoOutputTWYLTStrict",
+    "type": "object",
+    "$id": "echo.output",
+    "x-schema-version": "1.0.0"
+  },
+  "few_shots": [
+    {
+      "input": {
+        "text": "Hello, TWYLT!"
+      },
+      "output": {
+        "text": "Hello, TWYLT!"
+      }
+    }
+  ]
+}

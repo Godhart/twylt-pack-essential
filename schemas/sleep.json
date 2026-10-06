@@ -1,0 +1,62 @@
+{
+  "format_version": "1.8",
+  "name": "sleep",
+  "version": "0.1.1",
+  "description": "Wait in real time.",
+  "requirements": {
+    "tool": "pip",
+    "format": "requirements.txt",
+    "content": "twylt==1.0.0\npydantic>=2,<3\n"
+  },
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "seconds": {
+        "description": "Real elapsed seconds to wait (maximum one day).",
+        "maximum": 86400,
+        "minimum": 0,
+        "title": "Seconds",
+        "type": "number"
+      }
+    },
+    "required": [
+      "seconds"
+    ],
+    "title": "SleepInputTWYLTStrict",
+    "type": "object",
+    "$id": "sleep.input",
+    "x-schema-version": "1.0.0"
+  },
+  "outputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "requested_seconds": {
+        "title": "Requested Seconds",
+        "type": "number"
+      },
+      "elapsed_seconds": {
+        "title": "Elapsed Seconds",
+        "type": "number"
+      }
+    },
+    "required": [
+      "requested_seconds",
+      "elapsed_seconds"
+    ],
+    "title": "SleepOutputTWYLTStrict",
+    "type": "object",
+    "$id": "sleep.output",
+    "x-schema-version": "1.0.0"
+  },
+  "few_shots": [
+    {
+      "input": {
+        "seconds": 1
+      },
+      "output": {
+        "requested_seconds": 1,
+        "elapsed_seconds": 1.001
+      }
+    }
+  ]
+}

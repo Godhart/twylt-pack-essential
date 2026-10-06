@@ -1,0 +1,121 @@
+{
+  "format_version": "1.8",
+  "name": "ping",
+  "version": "0.1.1",
+  "description": "Check ICMP reachability using the operating system ping utility.",
+  "requirements": {
+    "tool": "pip",
+    "format": "requirements.txt",
+    "content": "twylt==1.0.0\npydantic>=2,<3\n"
+  },
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "host": {
+        "description": "Hostname or IP address; no command-line arguments.",
+        "maxLength": 253,
+        "minLength": 1,
+        "title": "Host",
+        "type": "string"
+      },
+      "count": {
+        "default": 4,
+        "description": "Number of ICMP echo requests.",
+        "maximum": 100,
+        "minimum": 1,
+        "title": "Count",
+        "type": "integer"
+      },
+      "timeout": {
+        "default": 10,
+        "description": "Whole process deadline, seconds.",
+        "exclusiveMinimum": 0,
+        "maximum": 300,
+        "title": "Timeout",
+        "type": "number"
+      },
+      "family": {
+        "default": "auto",
+        "description": "IP address family.",
+        "enum": [
+          "auto",
+          "ipv4",
+          "ipv6"
+        ],
+        "title": "Family",
+        "type": "string"
+      }
+    },
+    "required": [
+      "host"
+    ],
+    "title": "PingInputTWYLTStrict",
+    "type": "object",
+    "$id": "ping.input",
+    "x-schema-version": "1.0.0"
+  },
+  "outputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "reachable": {
+        "title": "Reachable",
+        "type": "boolean"
+      },
+      "timed_out": {
+        "title": "Timed Out",
+        "type": "boolean"
+      },
+      "returncode": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Returncode"
+      },
+      "stdout": {
+        "title": "Stdout",
+        "type": "string"
+      },
+      "stderr": {
+        "title": "Stderr",
+        "type": "string"
+      },
+      "elapsed_seconds": {
+        "title": "Elapsed Seconds",
+        "type": "number"
+      }
+    },
+    "required": [
+      "reachable",
+      "timed_out",
+      "returncode",
+      "stdout",
+      "stderr",
+      "elapsed_seconds"
+    ],
+    "title": "PingOutputTWYLTStrict",
+    "type": "object",
+    "$id": "ping.output",
+    "x-schema-version": "1.0.0"
+  },
+  "few_shots": [
+    {
+      "input": {
+        "host": "127.0.0.1",
+        "count": 1
+      },
+      "output": {
+        "reachable": true,
+        "timed_out": false,
+        "returncode": 0,
+        "stdout": "",
+        "stderr": "",
+        "elapsed_seconds": 0.01
+      }
+    }
+  ]
+}

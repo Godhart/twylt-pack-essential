@@ -1,0 +1,244 @@
+{
+  "format_version": "1.8",
+  "name": "curl",
+  "version": "0.1.1",
+  "description": "Perform an HTTP(S) request; return text/base64 or save a workspace file.",
+  "requirements": {
+    "tool": "pip",
+    "format": "requirements.txt",
+    "content": "twylt==1.0.0\npydantic>=2,<3\n"
+  },
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "url": {
+        "description": "HTTP or HTTPS URL.",
+        "title": "Url",
+        "type": "string"
+      },
+      "headers": {
+        "additionalProperties": {
+          "type": "string"
+        },
+        "description": "Request headers.",
+        "title": "Headers",
+        "type": "object"
+      },
+      "timeout": {
+        "default": 30,
+        "description": "Socket timeout and checked total deadline, seconds.",
+        "exclusiveMinimum": 0,
+        "maximum": 600,
+        "title": "Timeout",
+        "type": "number"
+      },
+      "max_bytes": {
+        "default": 10000000,
+        "description": "Maximum downloaded response bytes.",
+        "maximum": 1000000000,
+        "minimum": 1,
+        "title": "Max Bytes",
+        "type": "integer"
+      },
+      "follow_redirects": {
+        "default": true,
+        "description": "Follow at most ten HTTP(S) redirects.",
+        "title": "Follow Redirects",
+        "type": "boolean"
+      },
+      "output_path": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "Virtual workspace path; otherwise return response body.",
+        "title": "Output Path"
+      },
+      "overwrite": {
+        "default": false,
+        "description": "Explicitly permit replacement of destination.",
+        "title": "Overwrite",
+        "type": "boolean"
+      },
+      "method": {
+        "default": "GET",
+        "description": "HTTP method.",
+        "enum": [
+          "GET",
+          "HEAD",
+          "POST",
+          "PUT",
+          "PATCH",
+          "DELETE",
+          "OPTIONS"
+        ],
+        "title": "Method",
+        "type": "string"
+      },
+      "body": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "UTF-8 request body.",
+        "title": "Body"
+      },
+      "json_body": {
+        "anyOf": [
+          {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          {
+            "items": {},
+            "type": "array"
+          },
+          {
+            "type": "string"
+          },
+          {
+            "type": "integer"
+          },
+          {
+            "type": "number"
+          },
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "JSON request body; exclusive with body.",
+        "title": "Json Body"
+      },
+      "encoding": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "Decode returned body with this encoding, otherwise Content-Type or UTF-8.",
+        "title": "Encoding"
+      }
+    },
+    "required": [
+      "url"
+    ],
+    "title": "CurlInputTWYLTStrict",
+    "type": "object",
+    "$id": "curl.input",
+    "x-schema-version": "1.0.0"
+  },
+  "outputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "status": {
+        "title": "Status",
+        "type": "integer"
+      },
+      "ok": {
+        "title": "Ok",
+        "type": "boolean"
+      },
+      "headers": {
+        "additionalProperties": {
+          "type": "string"
+        },
+        "title": "Headers",
+        "type": "object"
+      },
+      "bytes_received": {
+        "title": "Bytes Received",
+        "type": "integer"
+      },
+      "sha256": {
+        "title": "Sha256",
+        "type": "string"
+      },
+      "output_path": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Output Path"
+      },
+      "text": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Text"
+      },
+      "body_base64": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Body Base64"
+      },
+      "elapsed_seconds": {
+        "title": "Elapsed Seconds",
+        "type": "number"
+      }
+    },
+    "required": [
+      "status",
+      "ok",
+      "headers",
+      "bytes_received",
+      "sha256",
+      "elapsed_seconds"
+    ],
+    "title": "HttpOutputTWYLTStrict",
+    "type": "object",
+    "$id": "curl.output",
+    "x-schema-version": "1.0.0"
+  },
+  "few_shots": [
+    {
+      "input": {
+        "url": "https://example.com/"
+      },
+      "output": {
+        "status": 200,
+        "ok": true,
+        "headers": {},
+        "bytes_received": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "text": "",
+        "elapsed_seconds": 0.1
+      }
+    }
+  ]
+}

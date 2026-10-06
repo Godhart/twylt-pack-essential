@@ -1,0 +1,189 @@
+{
+  "format_version": "1.8",
+  "name": "web_search",
+  "version": "0.1.1",
+  "description": "Search the web through a configured SearXNG JSON API.",
+  "requirements": {
+    "tool": "pip",
+    "format": "requirements.txt",
+    "content": "twylt==1.0.0\npydantic>=2,<3\n"
+  },
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "query": {
+        "description": "Search query.",
+        "maxLength": 4096,
+        "minLength": 1,
+        "title": "Query",
+        "type": "string"
+      },
+      "limit": {
+        "default": 10,
+        "description": "Maximum returned results from the requested page.",
+        "maximum": 100,
+        "minimum": 1,
+        "title": "Limit",
+        "type": "integer"
+      },
+      "page": {
+        "default": 1,
+        "description": "SearXNG page number.",
+        "maximum": 100,
+        "minimum": 1,
+        "title": "Page",
+        "type": "integer"
+      },
+      "language": {
+        "default": "all",
+        "description": "SearXNG language code.",
+        "title": "Language",
+        "type": "string"
+      },
+      "categories": {
+        "default": "general",
+        "description": "Comma-separated SearXNG categories.",
+        "title": "Categories",
+        "type": "string"
+      },
+      "time_range": {
+        "anyOf": [
+          {
+            "enum": [
+              "day",
+              "month",
+              "year"
+            ],
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "Optional time filter.",
+        "title": "Time Range"
+      },
+      "safe_search": {
+        "default": 1,
+        "description": "SearXNG safe search level.",
+        "maximum": 2,
+        "minimum": 0,
+        "title": "Safe Search",
+        "type": "integer"
+      },
+      "timeout": {
+        "default": 30,
+        "description": "HTTP timeout, seconds.",
+        "exclusiveMinimum": 0,
+        "maximum": 600,
+        "title": "Timeout",
+        "type": "number"
+      }
+    },
+    "required": [
+      "query"
+    ],
+    "title": "SearchInputTWYLTStrict",
+    "type": "object",
+    "$id": "web_search.input",
+    "x-schema-version": "1.0.0"
+  },
+  "outputSchema": {
+    "$defs": {
+      "SearchEntryTWYLTStrict": {
+        "additionalProperties": false,
+        "properties": {
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          },
+          "snippet": {
+            "title": "Snippet",
+            "type": "string"
+          },
+          "engines": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Engines",
+            "type": "array"
+          }
+        },
+        "required": [
+          "title",
+          "url",
+          "snippet",
+          "engines"
+        ],
+        "title": "SearchEntryTWYLTStrict",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "query": {
+        "title": "Query",
+        "type": "string"
+      },
+      "page": {
+        "title": "Page",
+        "type": "integer"
+      },
+      "results": {
+        "items": {
+          "$ref": "#/$defs/SearchEntryTWYLTStrict"
+        },
+        "title": "Results",
+        "type": "array"
+      },
+      "suggestions": {
+        "items": {
+          "type": "string"
+        },
+        "title": "Suggestions",
+        "type": "array"
+      },
+      "number_of_results": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Number Of Results"
+      }
+    },
+    "required": [
+      "query",
+      "page",
+      "results",
+      "suggestions",
+      "number_of_results"
+    ],
+    "title": "SearchOutputTWYLTStrict",
+    "type": "object",
+    "$id": "web_search.output",
+    "x-schema-version": "1.0.0"
+  },
+  "few_shots": [
+    {
+      "input": {
+        "query": "TWYLT github"
+      },
+      "output": {
+        "query": "TWYLT github",
+        "page": 1,
+        "results": [],
+        "suggestions": [],
+        "number_of_results": 0
+      }
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "name": "twylt-pack-essential",
+  "version": "0.1.1",
+  "protocol": "TWYLT 1",
+  "tools": [
+    {
+      "name": "echo",
+      "entrypoint": "tools/echo/tool.py",
+      "bootstrap": "tools/echo/run.py",
+      "description": "Return the request text unchanged."
+    },
+    {
+      "name": "sleep",
+      "entrypoint": "tools/sleep/tool.py",
+      "bootstrap": "tools/sleep/run.py",
+      "description": "Wait in real time."
+    },
+    {
+      "name": "wget",
+      "entrypoint": "tools/wget/tool.py",
+      "bootstrap": "tools/wget/run.py",
+      "description": "Download an HTTP(S) resource to a workspace file."
+    },
+    {
+      "name": "curl",
+      "entrypoint": "tools/curl/tool.py",
+      "bootstrap": "tools/curl/run.py",
+      "description": "Perform an HTTP(S) request; return text/base64 or save a workspace file."
+    },
+    {
+      "name": "ping",
+      "entrypoint": "tools/ping/tool.py",
+      "bootstrap": "tools/ping/run.py",
+      "description": "Check ICMP reachability using the operating system ping utility."
+    },
+    {
+      "name": "web_search",
+      "entrypoint": "tools/web_search/tool.py",
+      "bootstrap": "tools/web_search/run.py",
+      "description": "Search the web through a configured SearXNG JSON API."
+    }
+  ]
+}
