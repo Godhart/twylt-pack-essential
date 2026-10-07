@@ -14,7 +14,16 @@ from pydantic import ValidationError
 
 BASE = Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(BASE/'src'))
-import common as c
+from types import SimpleNamespace
+from twylt_pack_essential import http as h
+from twylt.guardrails import WorkspaceDenied
+c = SimpleNamespace(**{k:v for k,v in vars(h).items() if not k.startswith('__')})
+c.WorkspaceDenied = WorkspaceDenied
+for name in ['echo','sleep','curl','wget','ping','web_search']:
+    spec = importlib.util.spec_from_file_location('test_'+name, BASE/'tools'/name/'tool.py')
+    mod = importlib.util.module_from_spec(spec); spec.loader.exec_module(mod)
+    for key in ['EchoInput','EchoOutput','echo','SleepInput','SleepOutput','sleep','CurlInput','WgetInput','PingInput','PingOutput','ping','SearchInput','SearchOutput','web_search','shutil','platform','subprocess']:
+        if hasattr(mod,key): setattr(c,key,getattr(mod,key))
 
 class Handler(BaseHTTPRequestHandler):
     def log_message(self,*args): pass
@@ -51,7 +60,7 @@ class Tests(unittest.TestCase):
         for s in [cls.server,cls.other]: s.shutdown(); s.server_close()
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
-        self.env = patch.dict(os.environ,{'TWYLT_WORKSPACE_ROOT':self.temp.name,'TWYLT_SEARXNG_URL':self.url,'TWYLT_ESSENTIAL_DISABLE_NETWORK':'0','TWYLT_INCIDENT_LOG':''})
+        self.env = patch.dict(os.environ,{'TWYLT_GUARDRAILS':'1','TWYLT_WORKSPACE_ROOT':self.temp.name,'TWYLT_SEARXNG_URL':self.url,'TWYLT_DISABLE_NETWORK':'0','TWYLT_INCIDENT_LOG':''})
         self.env.start()
     def tearDown(self): self.env.stop(); self.temp.cleanup()
     def test_echo_preserves_text(self):
@@ -61,7 +70,7 @@ class Tests(unittest.TestCase):
             with self.assertRaises(ValidationError): c.EchoInput(**data)
     def test_echo_cli_and_network_disabled(self):
         text = '  Привет!\nSecond line\t'
-        with patch.dict(os.environ, {'TWYLT_ESSENTIAL_DISABLE_NETWORK':'1'}):
+        with patch.dict(os.environ, {'TWYLT_DISABLE_NETWORK':'1'}):
             result = subprocess.run([sys.executable,str(BASE/'tools/echo/run.py'),json.dumps({'text':text})],capture_output=True,text=True,timeout=10)
         self.assertEqual(result.returncode,0,result.stderr)
         self.assertEqual(json.loads(result.stdout), {'text':text})
@@ -102,7 +111,7 @@ class Tests(unittest.TestCase):
         (Path(self.temp.name)/'link').symlink_to('/tmp')
         with self.assertRaises(c.WorkspaceDenied): c.http(c.WgetInput(url=self.url,output_path='link/out'))
     def test_network_disabled(self):
-        with patch.dict(os.environ,{'TWYLT_ESSENTIAL_DISABLE_NETWORK':'1'}):
+        with patch.dict(os.environ,{'TWYLT_DISABLE_NETWORK':'1'}):
             for fn,data in [(c.http,c.CurlInput(url=self.url)),(c.ping,c.PingInput(host='localhost')),(c.web_search,c.SearchInput(query='test'))]:
                 with self.assertRaises(ValueError): fn(data)
             c.sleep(c.SleepInput(seconds=0))

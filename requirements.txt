@@ -1,2 +1,2 @@
-twylt==1.0.0
+twylt>=1.1.0,<2
 pydantic>=2,<3

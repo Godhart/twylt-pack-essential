@@ -1,17 +1,17 @@
-# twylt-pack-essential 0.1.1
+# twylt-pack-essential 0.2.0
 
-Шесть самостоятельных инструментов TWYLT для ToolHub: `echo`, `sleep`, `wget`, `curl`, `ping`, `web_search`.
+Шесть инструментов TWYLT для ToolHub: `echo`, `sleep`, `wget`, `curl`, `ping`, `web_search`.
 
 ## Установка
 
-Python 3.11+. Из каталога распакованного пакета:
+Python 3.10+. Из каталога распакованного пакета:
 
 ```bash
 uv venv
-uv pip install -r requirements.txt
+uv pip install ../twylt-1.1.0 .
 ```
 
-Или `python -m venv .venv`, затем установка через Python этого окружения: `.venv/bin/python -m pip install -r requirements.txt` (Windows: `.venv\Scripts\python.exe`).
+Или `python -m venv .venv`, затем установка через Python этого окружения: `.venv/bin/python -m pip install ../twylt-1.1.0 .` (Windows: `.venv\Scripts\python.exe`).
 
 Для ICMP `ping` в Linux нужен системный пакет `iputils-ping`:
 
@@ -24,13 +24,14 @@ HTTP-инструменты используют стандартную библ
 ## Настройка окружения
 
 ```bash
+export TWYLT_GUARDRAILS=1
 export TWYLT_WORKSPACE_ROOT=/absolute/path/to/workspace
 export TWYLT_SEARXNG_URL=http://searxng:8080
 ```
 
-Каталог workspace должен уже существовать. Пути `out.txt` и `/out.txt` относятся к корню workspace, а не к корню ФС хоста. Родительские каталоги назначения должны существовать; `..`, симлинки, hardlinks и переходы на другие mount points запрещены. Политика перенесена из актуального `twylt-pack-filesystem`. Опционально `TWYLT_INCIDENT_LOG` задаёт абсолютный путь журнала вне workspace; иначе события отказа идут в stderr. Это проверка путей, не изоляция от параллельной подмены файлов другим процессом.
+Каталог workspace должен уже существовать. Пути `out.txt` и `/out.txt` относятся к корню workspace, а не к корню ФС хоста. Родительские каталоги назначения должны существовать; `..`, симлинки, hardlinks и переходы на другие mount points запрещены. Общая политика реализована в TWYLT 1.1.0 и применяется при TWYLT_GUARDRAILS=1. Опционально `TWYLT_INCIDENT_LOG` задаёт абсолютный путь журнала вне workspace; иначе события отказа идут в stderr. Это проверка путей, не изоляция от параллельной подмены файлов другим процессом.
 
-`TWYLT_ESSENTIAL_DISABLE_NETWORK=1` запрещает `wget`, `curl`, `ping`, `web_search`, оставляя `sleep` и `echo` рабочими. HTTP-инструменты используют системную проверку TLS и стандартные переменные proxy окружения Python (`http_proxy`, `https_proxy`, `no_proxy`).
+`TWYLT_GUARDRAILS=1 TWYLT_DISABLE_NETWORK=1` запрещает `wget`, `curl`, `ping`, `web_search`, оставляя `sleep` и `echo` рабочими. HTTP-инструменты используют системную проверку TLS и стандартные переменные proxy окружения Python (`http_proxy`, `https_proxy`, `no_proxy`).
 
 ## Запуск и ToolHub
 
@@ -43,9 +44,9 @@ printf '%s' '{"url":"https://example.com/"}' | .venv/bin/python tools/curl/run.p
 INPUT_DESCRIBE=requirements .venv/bin/python tools/curl/run.py
 ```
 
-Поддерживаются все режимы TWYLT: `brief`, `schema`, `few_shots`, `requirements`, `json_spec`, а также `--help`, `--version`, `-v`. При передаче JSON через аргумент/stdin результат идёт в stdout. Без них используется стандартный транспорт `input.json`/`output.json`; рабочий каталог раннера и эти файлы должны находиться внутри workspace.
+Поддерживаются все режимы TWYLT: `brief`, `schema`, `few_shots`, `requirements`, `json_spec`, а также `--help`, `--version`, `-v`. При передаче JSON через аргумент/stdin результат идёт в stdout. Без них используется стандартный транспорт `input.json`/`output.json`; cwd может находиться внутри workspace или внутри отдельного TWYLT_ALLOWED_CWD, включая подкаталоги. Разрешение cwd относится только к транспорту.
 
-Для toolpack-builder сканируйте **только `tools/`**. Каждый `tools/<name>/tool.py` содержит всю реализацию и статические метаданные; соседний `run.py` — штатный загрузчик TWYLT. Копировать `src/` к отдельному инструменту не требуется. Подключите шесть инструментов к ToolHub обычной сборкой toolpack. `manifest.json` описывает состав исходного пакета и не является готовым экспортом конфигурации ToolHub.
+Для toolpack-builder сканируйте **только `tools/`**. Каждый `tools/<name>/tool.py` содержит свой контракт и собственную реализацию, импортируя только нужный общий модуль; соседний `run.py` — штатный загрузчик TWYLT. Общий HTTP-модуль устанавливается командой `pip install .` в Python-окружение раннера. Доступность исходных tools по пути также необходима: builder не встраивает их в toolpack. Подключите шесть инструментов к ToolHub обычной сборкой toolpack. `manifest.json` описывает состав исходного пакета и не является готовым экспортом конфигурации ToolHub.
 
 Передавайте JSON в stdin и закрывайте его либо используйте аргумент JSON. Открытый незакрытый stdin может привести к ожиданию ввода в TWYLT. Для `sleep` тайм-аут ToolHub должен превышать `seconds` с запасом; команда действительно блокирует работника до завершения. Длительное ожидание желательно выполнять на выделенном работнике. Тайм-ауты ToolHub для сетевых команд также должны превышать их `timeout`.
 
@@ -65,7 +66,7 @@ INPUT_DESCRIBE=requirements .venv/bin/python tools/curl/run.py
 {"text":"Привет, TWYLT!"}
 ```
 
-Обязательный параметр `text` — строка. Возвращается без изменений: сохраняются пробелы, переносы строк, Unicode и пустая строка. Команда не использует сеть и работает при `TWYLT_ESSENTIAL_DISABLE_NETWORK=1`.
+Обязательный параметр `text` — строка. Возвращается без изменений: сохраняются пробелы, переносы строк, Unicode и пустая строка. Команда не использует сеть и работает при `TWYLT_GUARDRAILS=1 TWYLT_DISABLE_NETWORK=1`.
 
 ### sleep
 
@@ -140,4 +141,26 @@ search:
 .venv/bin/python scripts/export_schemas.py
 ```
 
-Редактируйте `src/common.py`, `src/workspace.py` и генератор; затем пересобирайте standalone-файлы. Тесты используют локальный HTTP-сервер и mock системного ping, не требуют внешней сети или установленного ping. Реальный внешний поиск и ICMP в вашем окружении следует проверить отдельно после настройки. Архитектурные решения: `docs/adr/0001-essential-pack.md`.
+Редактируйте конкретный tools/<name>/tool.py и общий src/twylt_pack_essential/http.py. Генератора встроенных копий больше нет. Тесты используют локальный HTTP-сервер и mock системного ping, не требуют внешней сети или установленного ping. Реальный внешний поиск и ICMP в вашем окружении следует проверить отдельно после настройки. Архитектурные решения: `docs/adr/0001-essential-pack.md`.
+
+## Миграция 0.2.0
+
+Установите сначала TWYLT 1.1.0, затем этот пак. Общий модуль входит в Python-пакет;
+requirements.txt перечисляет зависимости и не заменяет `pip install .`.
+Релизы в этих архивах не опубликованы автоматически в PyPI или GitHub.
+
+Guardrails теперь выключены по умолчанию вне toolhub-images. Для сохранения
+прежних ограничений явно задайте TWYLT_GUARDRAILS=1 и workspace. Старый параметр
+TWYLT_ESSENTIAL_DISABLE_NETWORK заменён TWYLT_DISABLE_NETWORK и больше не читается.
+Сетевой запрет действует при включённой политике. Корректность URL, безопасные
+аргументы ping, лимиты и атомарная публикация загрузки остаются обязательными.
+
+Бизнес-пути не зависят от cwd. При выключенной политике без workspace абсолютные
+пути обозначают ФС хоста; при заданном workspace сохраняется виртуальная семантика.
+Механизмы TWYLT защищают от типового неосторожного использования. Автор тула отвечает
+за вызовы проверок; произвольные обращения контролируются ОС.
+
+Builder 0.4.1 совместим без изменения кода: сканируйте tools/ с glob */tool.py
+(либо стандартным рекурсивным glob), устанавливайте модуль в окружение и сохраняйте
+исходные пути. Не переносите только toolpack на другой хост без исходных файлов.
+Пересоберите toolpack после замены tools и обновления путей.

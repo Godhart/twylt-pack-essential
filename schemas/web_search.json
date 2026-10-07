@@ -1,12 +1,12 @@
 {
   "format_version": "1.8",
   "name": "web_search",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Search the web through a configured SearXNG JSON API.",
   "requirements": {
     "tool": "pip",
     "format": "requirements.txt",
-    "content": "twylt==1.0.0\npydantic>=2,<3\n"
+    "content": "twylt>=1.1.0,<2\npydantic>=2,<3\ntwylt-pack-essential==0.2.0\n"
   },
   "inputSchema": {
     "additionalProperties": false,

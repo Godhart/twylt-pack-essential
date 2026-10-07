@@ -1,12 +1,12 @@
 {
   "format_version": "1.8",
   "name": "sleep",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Wait in real time.",
   "requirements": {
     "tool": "pip",
     "format": "requirements.txt",
-    "content": "twylt==1.0.0\npydantic>=2,<3\n"
+    "content": "twylt>=1.1.0,<2\npydantic>=2,<3\n"
   },
   "inputSchema": {
     "additionalProperties": false,
