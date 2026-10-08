@@ -1,3 +1,10 @@
+# 0.3.0 — 2026-10-08
+
+- Load shared HTTP code from shared/essential_common using each tool's __file__.
+- Remove mandatory Python-package build/install and self-dependencies from tool requirements.
+- Keep echo, sleep and ping independent of shared HTTP code.
+- Preserve guardrails, contracts and existing behavioral tests; verify copied source packs and builder HTTP launchers from arbitrary cwd without an installed essential package.
+
 # 0.2.0 — 2026-10-07
 
 - Move guardrails to TWYLT >=1.1.0; opt-in except image defaults.

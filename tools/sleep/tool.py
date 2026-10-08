@@ -20,7 +20,7 @@ class EssentialTool(Tool[SleepInput, SleepOutput]):
     input_model = SleepInput
     output_model = SleepOutput
     name = 'sleep'
-    version = '0.2.0'
+    version = '0.3.0'
     description = 'Wait in real time.'
     requirements = Requirements(tool='pip', format='requirements.txt', content='twylt>=1.1.0,<2\npydantic>=2,<3\n')
     few_shots = [{'input': {'seconds': 1}, 'output': {'requested_seconds': 1, 'elapsed_seconds': 1.001}}]

@@ -1,0 +1,579 @@
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index b97f38d..4b872b9 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -1,3 +1,10 @@
++# 0.3.0 — 2026-10-08
++
++- Load shared HTTP code from shared/essential_common using each tool's __file__.
++- Remove mandatory Python-package build/install and self-dependencies from tool requirements.
++- Keep echo, sleep and ping independent of shared HTTP code.
++- Preserve guardrails, contracts and existing behavioral tests; verify copied source packs and builder HTTP launchers from arbitrary cwd without an installed essential package.
++
+ # 0.2.0 — 2026-10-07
+ 
+ - Move guardrails to TWYLT >=1.1.0; opt-in except image defaults.
+diff --git a/README.md b/README.md
+index 6b2595f..4862d71 100644
+--- a/README.md
++++ b/README.md
+@@ -1,4 +1,4 @@
+-# twylt-pack-essential 0.2.0
++# twylt-pack-essential 0.3.0
+ 
+ Шесть инструментов TWYLT для ToolHub: `echo`, `sleep`, `wget`, `curl`, `ping`, `web_search`.
+ 
+@@ -8,10 +8,15 @@ Python 3.10+. Из каталога распакованного пакета:
+ 
+ ```bash
+ uv venv
+-uv pip install ../twylt-1.1.0 .
++uv pip install -r requirements.txt
+ ```
+ 
+-Или `python -m venv .venv`, затем установка через Python этого окружения: `.venv/bin/python -m pip install ../twylt-1.1.0 .` (Windows: `.venv\Scripts\python.exe`).
++Или `python -m venv .venv`, затем установка через Python этого окружения: `.venv/bin/python -m pip install -r requirements.txt` (Windows: `.venv\Scripts\python.exe`).
++
++Если TWYLT >=1.1.0 ещё не опубликован в используемом Python-индексе,
++сначала установите его из актуального исходного каталога или wheel:
++`python -m pip install /path/to/twylt-1.1.0`, затем зависимости пака.
++Сам essentials устанавливать не нужно.
+ 
+ Для ICMP `ping` в Linux нужен системный пакет `iputils-ping`:
+ 
+@@ -46,7 +51,7 @@ INPUT_DESCRIBE=requirements .venv/bin/python tools/curl/run.py
+ 
+ Поддерживаются все режимы TWYLT: `brief`, `schema`, `few_shots`, `requirements`, `json_spec`, а также `--help`, `--version`, `-v`. При передаче JSON через аргумент/stdin результат идёт в stdout. Без них используется стандартный транспорт `input.json`/`output.json`; cwd может находиться внутри workspace или внутри отдельного TWYLT_ALLOWED_CWD, включая подкаталоги. Разрешение cwd относится только к транспорту.
+ 
+-Для toolpack-builder сканируйте **только `tools/`**. Каждый `tools/<name>/tool.py` содержит свой контракт и собственную реализацию, импортируя только нужный общий модуль; соседний `run.py` — штатный загрузчик TWYLT. Общий HTTP-модуль устанавливается командой `pip install .` в Python-окружение раннера. Доступность исходных tools по пути также необходима: builder не встраивает их в toolpack. Подключите шесть инструментов к ToolHub обычной сборкой toolpack. `manifest.json` описывает состав исходного пакета и не является готовым экспортом конфигурации ToolHub.
++Для toolpack-builder сканируйте **только `tools/`**. Каждый `tools/<name>/tool.py` содержит свой контракт и собственную реализацию, импортируя только нужный общий модуль; соседний `run.py` — штатный загрузчик TWYLT. Общий HTTP-модуль находится в `shared/essential_common/http.py`. HTTP-тулы добавляют `shared/` в `sys.path` относительно собственного `__file__`; установка essentials не требуется. Сохраняйте структуру `tools/` и `shared/` при копировании или монтировании пака. Доступность исходных tools по пути также необходима: builder не встраивает их в toolpack. Подключите шесть инструментов к ToolHub обычной сборкой toolpack. `manifest.json` описывает состав исходного пакета и не является готовым экспортом конфигурации ToolHub.
+ 
+ Передавайте JSON в stdin и закрывайте его либо используйте аргумент JSON. Открытый незакрытый stdin может привести к ожиданию ввода в TWYLT. Для `sleep` тайм-аут ToolHub должен превышать `seconds` с запасом; команда действительно блокирует работника до завершения. Длительное ожидание желательно выполнять на выделенном работнике. Тайм-ауты ToolHub для сетевых команд также должны превышать их `timeout`.
+ 
+@@ -137,17 +142,28 @@ search:
+ 
+ ```bash
+ .venv/bin/python -m unittest discover -s tests -v
+-.venv/bin/python scripts/build_tools.py
+ .venv/bin/python scripts/export_schemas.py
+ ```
+ 
+-Редактируйте конкретный tools/<name>/tool.py и общий src/twylt_pack_essential/http.py. Генератора встроенных копий больше нет. Тесты используют локальный HTTP-сервер и mock системного ping, не требуют внешней сети или установленного ping. Реальный внешний поиск и ICMP в вашем окружении следует проверить отдельно после настройки. Архитектурные решения: `docs/adr/0001-essential-pack.md`.
++Редактируйте конкретный tools/<name>/tool.py и общий shared/essential_common/http.py. Генератора встроенных копий больше нет. Тесты используют локальный HTTP-сервер и mock системного ping, не требуют внешней сети или установленного ping. Реальный внешний поиск и ICMP в вашем окружении следует проверить отдельно после настройки. Архитектурные решения: `docs/adr/`, включая ADR 0003 о загрузке общего кода.
++
++## Миграция 0.3.0
++
++Установите зависимости через `python -m pip install -r requirements.txt`.
++Сборка wheel и `pip install .` больше не используются: это исходный пак тулов,
++а не устанавливаемый Python-пакет. Ранее установленный `twylt-pack-essential`
++можно удалить; новая версия не импортирует его.
+ 
+-## Миграция 0.2.0
++Копируйте весь пак с каталогами `tools/` и `shared/`, а builder направляйте на `tools/`.
++В ToolHub раннеру нужен доступ к этим исходникам и установленным зависимостям.
++Для toolhub-images уберите установку самого пака и ограничение
++`twylt-pack-essential==0.2.0` из Python constraints; установите `requirements.txt`
++и подключите исходники новой версии целиком. Изменения образов в этот релиз не входят.
+ 
+-Установите сначала TWYLT 1.1.0, затем этот пак. Общий модуль входит в Python-пакет;
+-requirements.txt перечисляет зависимости и не заменяет `pip install .`.
+-Релизы в этих архивах не опубликованы автоматически в PyPI или GitHub.
++Импорты опираются на путь файла тула, поэтому cwd и PYTHONPATH настраивать не нужно.
++Общий код является доверенным кодом пака. Имя `essential_common` выделено для этого
++пака; разные версии пака следует запускать в отдельных процессах, поскольку Python
++кеширует импортированные модули. Echo, sleep и ping не загружают общий HTTP-модуль.
+ 
+ Guardrails теперь выключены по умолчанию вне toolhub-images. Для сохранения
+ прежних ограничений явно задайте TWYLT_GUARDRAILS=1 и workspace. Старый параметр
+@@ -161,6 +177,6 @@ TWYLT_ESSENTIAL_DISABLE_NETWORK заменён TWYLT_DISABLE_NETWORK и боль
+ за вызовы проверок; произвольные обращения контролируются ОС.
+ 
+ Builder 0.4.1 совместим без изменения кода: сканируйте tools/ с glob */tool.py
+-(либо стандартным рекурсивным glob), устанавливайте модуль в окружение и сохраняйте
+-исходные пути. Не переносите только toolpack на другой хост без исходных файлов.
++(либо стандартным рекурсивным glob), устанавливайте внешние зависимости и сохраняйте
++исходные пути вместе с shared/. Не переносите только toolpack на другой хост без исходных файлов.
+ Пересоберите toolpack после замены tools и обновления путей.
+diff --git a/TESTING.md b/TESTING.md
+index 4f43f92..cc8b9a6 100644
+--- a/TESTING.md
++++ b/TESTING.md
+@@ -1,18 +1,44 @@
+-# Testing twylt-pack-essential 0.2.0
++# Testing twylt-pack-essential 0.3.0
+ 
+-Python 3.12 preparation: 20 tests passed (17 previous behavioral tests + 3 integration).
+-Local HTTP server and mocked ping; external SearXNG and real ICMP not exercised.
+-Builder 0.4.1 scan finds all six tools and its actual generated launcher runs echo
+-from a nested cwd outside workspace, using input.json/output.json and closed stdin.
++## Results
+ 
+-Install TWYLT 1.1.0 and this source first, then optionally builder for integration:
++Python 3.12: 22 tests passed (17 preserved behavioral tests, 3 existing integration
++tests, 2 new source-deployment tests). Also passed in an isolated venv containing
++TWYLT 1.1.0, Pydantic 2.13.5 and builder 0.4.1, with no installed essential package.
++Dependencies for that venv were provisioned offline from the available TWYLT wheel
++and installed external dependency files; pip check reported no broken requirements.
++The attempted online setup could not reach the builder package index.
++
++The new deployment test copies only tools/ and shared/ to another location,
++rejects imports of the old installed pack via sitecustomize, and exercises curl's
++actual HTTP business logic through tool.py, run.py and builder's generated launcher.
++The launcher uses closed stdin and input.json/output.json in a nested cwd outside
++workspace. Builder discovers all six tools; HTTP tool requirements have no self-pin.
++Separate subprocess checks confirm echo, sleep and ping do not import shared HTTP.
++
++Local HTTP server and mocked ping only; external SearXNG and real ICMP not exercised.
++HTTP implementation bytes, input/output schemas and few-shots match GitHub 0.2.0.
++Implementation versions and requirements were intentionally updated.
++
++## Reproduce
++
++Install TWYLT >=1.1.0 first from source or wheel if not yet in your package index.
++Install only external dependencies; do not install or build this source pack.
++Builder 0.4.1 is required for integration tests; install its source checkout if
++unavailable in your package index.
+ 
+ ```bash
+-python -m pip install ../twylt-1.1.0 . toolpack-builder==0.4.1
++python -m pip install -r requirements.txt
++python -m pip install /path/to/toolpack-builder-0.4.1
+ python -m unittest discover -s tests -v
+ python scripts/export_schemas.py
+ ```
+ 
+-No external network is used by test requests. The module must also be installed
+-in subprocess interpreters. Wheels are provided in dist; install them with pip
+-when the new versions are not yet published. Generated schemas are refreshed.
++Keep tools/ and shared/ together. No PYTHONPATH configuration is needed at runtime.
++
++## Source provenance
++
++Based on the latest GitHub main checked on 2026-10-08:
++https://github.com/Godhart/twylt-pack-essential
++commit 488e1a78f0400161884cd8034409b9d733880394 (version 0.2.0).
++The archive includes a patch against that commit and SHA256SUMS.
+diff --git a/docs/adr/0003-source-shared-imports.md b/docs/adr/0003-source-shared-imports.md
+new file mode 100644
+index 0000000..9b1972d
+--- /dev/null
++++ b/docs/adr/0003-source-shared-imports.md
+@@ -0,0 +1,24 @@
++# ADR 0003 — essential 0.3.0: shared source imports
++
++Accepted, 2026-10-08. Supersedes ADR 0002's installed shared-module decision.
++
++The pack is deployed as source files, without building or installing a Python
++package. curl, wget and web_search insert the pack's shared directory into sys.path,
++computed from Path(__file__).resolve().parents[2]. They import essential_common.http.
++Only these three tools need this import. echo, sleep and ping remain independent.
++Guardrails remain in the installed TWYLT library; HTTP business logic has one source.
++
++The short repeated import-path setup is intentional: each tool must work when
++loaded directly by builder or runpy, without bootstrap setup or cwd assumptions.
++There is no pack-wide registry or business-logic aggregation in production.
++
++Deploy the entire tools/shared tree and install requirements.txt. Builder still
++references original source paths; copying only its generated toolpack is insufficient.
++Remove obsolete essential package pins from image/host dependency configurations.
++The shared directory must be trusted. A distinct module name reduces collisions;
++Python's module cache means different pack versions need separate processes.
++No import sandbox is provided. Arbitrary tool filesystem access remains subject to
++OS permissions and the tool author's use of TWYLT's cooperative checks.
++
++Version 0.3.0 marks the deployment/layout change. Tool schemas and few-shots remain
++compatible; tool requirements and implementation versions change.
+diff --git a/manifest.json b/manifest.json
+index 1fdda5a..e159f3a 100644
+--- a/manifest.json
++++ b/manifest.json
+@@ -1,6 +1,6 @@
+ {
+   "name": "twylt-pack-essential",
+-  "version": "0.2.0",
++  "version": "0.3.0",
+   "protocol": "TWYLT 1",
+   "tools": [
+     {
+diff --git a/pyproject.toml b/pyproject.toml
+deleted file mode 100644
+index 5b747c3..0000000
+--- a/pyproject.toml
++++ /dev/null
+@@ -1,15 +0,0 @@
+-[build-system]
+-requires = ["hatchling"]
+-build-backend = "hatchling.build"
+-[project]
+-name = "twylt-pack-essential"
+-version = "0.2.0"
+-description = "Essential TWYLT tools and their shared HTTP implementation"
+-readme = "README.md"
+-requires-python = ">=3.10"
+-license = {file = "LICENSE"}
+-dependencies = ["twylt>=1.1.0,<2", "pydantic>=2,<3"]
+-[project.optional-dependencies]
+-test = ["pytest>=8"]
+-[tool.hatch.build.targets.wheel]
+-packages = ["src/twylt_pack_essential"]
+diff --git a/schemas/curl.json b/schemas/curl.json
+index ca7b11a..07307f5 100644
+--- a/schemas/curl.json
++++ b/schemas/curl.json
+@@ -1,12 +1,12 @@
+ {
+   "format_version": "1.8",
+   "name": "curl",
+-  "version": "0.2.0",
++  "version": "0.3.0",
+   "description": "Perform an HTTP(S) request; return text/base64 or save a workspace file.",
+   "requirements": {
+     "tool": "pip",
+     "format": "requirements.txt",
+-    "content": "twylt>=1.1.0,<2\npydantic>=2,<3\ntwylt-pack-essential==0.2.0\n"
++    "content": "twylt>=1.1.0,<2\npydantic>=2,<3\n"
+   },
+   "inputSchema": {
+     "additionalProperties": false,
+diff --git a/schemas/echo.json b/schemas/echo.json
+index 9acb3ec..6127e7c 100644
+--- a/schemas/echo.json
++++ b/schemas/echo.json
+@@ -1,7 +1,7 @@
+ {
+   "format_version": "1.8",
+   "name": "echo",
+-  "version": "0.2.0",
++  "version": "0.3.0",
+   "description": "Return the request text unchanged.",
+   "requirements": {
+     "tool": "pip",
+diff --git a/schemas/ping.json b/schemas/ping.json
+index 6ce9639..4d09e69 100644
+--- a/schemas/ping.json
++++ b/schemas/ping.json
+@@ -1,7 +1,7 @@
+ {
+   "format_version": "1.8",
+   "name": "ping",
+-  "version": "0.2.0",
++  "version": "0.3.0",
+   "description": "Check ICMP reachability using the operating system ping utility.",
+   "requirements": {
+     "tool": "pip",
+diff --git a/schemas/sleep.json b/schemas/sleep.json
+index 9b75fb0..7b96757 100644
+--- a/schemas/sleep.json
++++ b/schemas/sleep.json
+@@ -1,7 +1,7 @@
+ {
+   "format_version": "1.8",
+   "name": "sleep",
+-  "version": "0.2.0",
++  "version": "0.3.0",
+   "description": "Wait in real time.",
+   "requirements": {
+     "tool": "pip",
+diff --git a/schemas/web_search.json b/schemas/web_search.json
+index f658354..4d10784 100644
+--- a/schemas/web_search.json
++++ b/schemas/web_search.json
+@@ -1,12 +1,12 @@
+ {
+   "format_version": "1.8",
+   "name": "web_search",
+-  "version": "0.2.0",
++  "version": "0.3.0",
+   "description": "Search the web through a configured SearXNG JSON API.",
+   "requirements": {
+     "tool": "pip",
+     "format": "requirements.txt",
+-    "content": "twylt>=1.1.0,<2\npydantic>=2,<3\ntwylt-pack-essential==0.2.0\n"
++    "content": "twylt>=1.1.0,<2\npydantic>=2,<3\n"
+   },
+   "inputSchema": {
+     "additionalProperties": false,
+diff --git a/schemas/wget.json b/schemas/wget.json
+index 758c414..6c2c169 100644
+--- a/schemas/wget.json
++++ b/schemas/wget.json
+@@ -1,12 +1,12 @@
+ {
+   "format_version": "1.8",
+   "name": "wget",
+-  "version": "0.2.0",
++  "version": "0.3.0",
+   "description": "Download an HTTP(S) resource to a workspace file.",
+   "requirements": {
+     "tool": "pip",
+     "format": "requirements.txt",
+-    "content": "twylt>=1.1.0,<2\npydantic>=2,<3\ntwylt-pack-essential==0.2.0\n"
++    "content": "twylt>=1.1.0,<2\npydantic>=2,<3\n"
+   },
+   "inputSchema": {
+     "additionalProperties": false,
+diff --git a/shared/essential_common/__init__.py b/shared/essential_common/__init__.py
+new file mode 100644
+index 0000000..ca1040c
+--- /dev/null
++++ b/shared/essential_common/__init__.py
+@@ -0,0 +1 @@
++"""Shared business logic loaded from the essential source pack."""
+diff --git a/src/twylt_pack_essential/http.py b/shared/essential_common/http.py
+similarity index 100%
+rename from src/twylt_pack_essential/http.py
+rename to shared/essential_common/http.py
+diff --git a/src/twylt_pack_essential/__init__.py b/src/twylt_pack_essential/__init__.py
+deleted file mode 100644
+index da5b4ab..0000000
+--- a/src/twylt_pack_essential/__init__.py
++++ /dev/null
+@@ -1,2 +0,0 @@
+-"""Shared essential implementations, version 0.2.0."""
+-__version__ = "0.2.0"
+diff --git a/tests/test_integration.py b/tests/test_integration.py
+index eb68339..9ac3d1e 100644
+--- a/tests/test_integration.py
++++ b/tests/test_integration.py
+@@ -1,4 +1,5 @@
+-import json,os,subprocess,sys,tempfile,unittest
++import json,os,subprocess,sys,tempfile,unittest,shutil,threading
++from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+ from pathlib import Path
+ from unittest.mock import patch
+ BASE=Path(__file__).resolve().parents[1]
+@@ -23,7 +24,7 @@ class Integration(unittest.TestCase):
+                 self.assertNotIn('class Workspace',tools['echo']['code'])
+ 
+     def test_echo_does_not_import_other_business_logic(self):
+-        code='import runpy,sys;runpy.run_path('+repr(str(BASE/'tools/echo/tool.py'))+''',run_name='inspect_only');assert 'twylt_pack_essential.http' not in sys.modules;assert 'urllib.request' not in sys.modules;assert 'subprocess' not in sys.modules'''
++        code='import runpy,sys;runpy.run_path('+repr(str(BASE/'tools/echo/tool.py'))+''',run_name='inspect_only');assert 'essential_common.http' not in sys.modules;assert 'urllib.request' not in sys.modules;assert 'subprocess' not in sys.modules'''
+         # Pydantic or interpreter internals may import subprocess; restrict to the pack's HTTP module.
+         code=code.replace(";assert 'subprocess' not in sys.modules",'')
+         r=subprocess.run([sys.executable,'-c',code],capture_output=True,text=True)
+@@ -35,4 +36,84 @@ class Integration(unittest.TestCase):
+         errors=[json.loads(line) for line in r.stderr.splitlines()]
+         self.assertEqual(errors[-1]['error']['code'],'network_disabled')
+ 
++class SourceDeployment(unittest.TestCase):
++    def test_copied_pack_http_direct_bootstrap_and_builder(self):
++        from toolpack_builder.builder import BuildConfig, scan, build_from_report
++
++        class Handler(BaseHTTPRequestHandler):
++            def log_message(self, *args):
++                pass
++            def do_GET(self):
++                self.send_response(200)
++                self.end_headers()
++                self.wfile.write(b'portable shared code')
++
++        server = ThreadingHTTPServer(('127.0.0.1', 0), Handler)
++        thread = threading.Thread(target=server.serve_forever, daemon=True)
++        thread.start()
++        try:
++            with tempfile.TemporaryDirectory() as td:
++                root = Path(td)
++                pack = root/'copied-pack'
++                for directory in ('tools', 'shared'):
++                    shutil.copytree(BASE/directory, pack/directory,
++                                    ignore=shutil.ignore_patterns('__pycache__'))
++                cwd = root/'unrelated'/'nested'
++                cwd.mkdir(parents=True)
++                ws = root/'workspace'
++                ws.mkdir()
++                env = {**os.environ, 'TWYLT_GUARDRAILS': '1',
++                       'TWYLT_DISABLE_NETWORK': '0',
++                       'TWYLT_WORKSPACE_ROOT': str(ws),
++                       'TWYLT_ALLOWED_CWD': str(root/'unrelated')}
++                # Reject any reliance on an old installed pack, including probe processes.
++                blocker = root/'blocker'
++                blocker.mkdir()
++                (blocker/'sitecustomize.py').write_text(
++                    "import sys\nclass BlockLegacy:\n"
++                    " def find_spec(self, fullname, path=None, target=None):\n"
++                    "  if fullname.split('.')[0] == 'twylt_pack_essential':\n"
++                    "   raise ImportError('Installed essential package is forbidden')\n"
++                    "sys.meta_path.insert(0, BlockLegacy())\n")
++                env['PYTHONPATH'] = str(blocker)
++                request = json.dumps({'url': f'http://127.0.0.1:{server.server_port}/'})
++                for entry in ('tool.py', 'run.py'):
++                    with self.subTest(entry=entry):
++                        r = subprocess.run([sys.executable, str(pack/'tools/curl'/entry), request],
++                                           cwd=cwd, env=env, input='', capture_output=True, text=True)
++                        self.assertEqual(r.returncode, 0, r.stderr)
++                        self.assertEqual(json.loads(r.stdout)['text'], 'portable shared code')
++                with patch.dict(os.environ, env):
++                    config = BuildConfig(root=pack/'tools', glob='*/tool.py', python=sys.executable)
++                    report = scan(config)
++                    self.assertEqual(len(report.valid), 6, report.failed)
++                    payload = build_from_report(config, report).payload
++                tools = {t['name']: t for t in payload['category']['tools']}
++                for name in ('curl', 'wget', 'web_search'):
++                    r = subprocess.run([sys.executable, str(pack/'tools'/name/'run.py'),
++                                        '{"describe":"json_spec"}'], cwd=cwd, env=env,
++                                       input='', capture_output=True, text=True)
++                    self.assertEqual(r.returncode, 0, r.stderr)
++                    self.assertNotIn('twylt-pack-essential', json.loads(r.stdout)['requirements']['content'])
++                (cwd/'input.json').write_text(request)
++                r = subprocess.run([sys.executable, '-c', tools['curl']['code']],
++                                   cwd=cwd, env=env, stdin=subprocess.DEVNULL,
++                                   capture_output=True, text=True)
++                self.assertEqual(r.returncode, 0, r.stderr)
++                self.assertEqual(json.loads((cwd/'output.json').read_text())['text'],
++                                 'portable shared code')
++        finally:
++            server.shutdown()
++            server.server_close()
++
++    def test_non_http_tools_do_not_load_shared_code(self):
++        for name in ('echo', 'sleep', 'ping'):
++            with self.subTest(tool=name):
++                code = ('import runpy,sys;runpy.run_path(' +
++                        repr(str(BASE/'tools'/name/'tool.py')) +
++                        ",run_name='inspect_only');assert not any("
++                        "x == 'essential_common' or x.startswith('essential_common.') for x in sys.modules)")
++                r = subprocess.run([sys.executable, '-c', code], capture_output=True, text=True)
++                self.assertEqual(r.returncode, 0, r.stderr)
++
+ if __name__=='__main__':unittest.main()
+diff --git a/tests/test_pack.py b/tests/test_pack.py
+index 735acba..a694dcb 100644
+--- a/tests/test_pack.py
++++ b/tests/test_pack.py
+@@ -13,9 +13,9 @@ from unittest.mock import patch
+ from pydantic import ValidationError
+ 
+ BASE = Path(__file__).resolve().parents[1]
+-sys.path.insert(0,str(BASE/'src'))
++sys.path.insert(0,str(BASE/'shared'))
+ from types import SimpleNamespace
+-from twylt_pack_essential import http as h
++from essential_common import http as h
+ from twylt.guardrails import WorkspaceDenied
+ c = SimpleNamespace(**{k:v for k,v in vars(h).items() if not k.startswith('__')})
+ c.WorkspaceDenied = WorkspaceDenied
+diff --git a/tools/curl/tool.py b/tools/curl/tool.py
+index 078b21a..4b967aa 100644
+--- a/tools/curl/tool.py
++++ b/tools/curl/tool.py
+@@ -1,7 +1,11 @@
+ from twylt import Tool, Requirements
+ from typing import Literal
+ from pydantic import Field, model_validator
+-from twylt_pack_essential.http import HttpInput, HttpOutput, http
++# Shared code travels with the source pack; its location does not depend on cwd.
++import sys
++from pathlib import Path
++sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "shared"))
++from essential_common.http import HttpInput, HttpOutput, http
+ 
+ class CurlInput(HttpInput):
+     method: Literal['GET','HEAD','POST','PUT','PATCH','DELETE','OPTIONS'] = Field(default='GET', description='HTTP method.')
+@@ -18,9 +22,9 @@ class EssentialTool(Tool[CurlInput, HttpOutput]):
+     input_model = CurlInput
+     output_model = HttpOutput
+     name = 'curl'
+-    version = '0.2.0'
++    version = '0.3.0'
+     description = 'Perform an HTTP(S) request; return text/base64 or save a workspace file.'
+-    requirements = Requirements(tool='pip', format='requirements.txt', content='twylt>=1.1.0,<2\npydantic>=2,<3\ntwylt-pack-essential==0.2.0\n')
++    requirements = Requirements(tool='pip', format='requirements.txt', content='twylt>=1.1.0,<2\npydantic>=2,<3\n')
+     few_shots = [{'input': {'url': 'https://example.com/'}, 'output': {'status': 200, 'ok': True, 'headers': {}, 'bytes_received': 0, 'sha256': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', 'text': '', 'elapsed_seconds': 0.1}}]
+     input_schema_name = 'curl.input'
+     input_schema_version = '1.0.0'
+diff --git a/tools/echo/tool.py b/tools/echo/tool.py
+index 2975b6f..7bbbe88 100644
+--- a/tools/echo/tool.py
++++ b/tools/echo/tool.py
+@@ -16,7 +16,7 @@ class EssentialTool(Tool[EchoInput, EchoOutput]):
+     input_model = EchoInput
+     output_model = EchoOutput
+     name = 'echo'
+-    version = '0.2.0'
++    version = '0.3.0'
+     description = 'Return the request text unchanged.'
+     requirements = Requirements(tool='pip', format='requirements.txt', content='twylt>=1.1.0,<2\npydantic>=2,<3\n')
+     few_shots = [{'input': {'text': 'Hello, TWYLT!'}, 'output': {'text': 'Hello, TWYLT!'}}]
+diff --git a/tools/ping/tool.py b/tools/ping/tool.py
+index 98e9d97..8827d72 100644
+--- a/tools/ping/tool.py
++++ b/tools/ping/tool.py
+@@ -47,7 +47,7 @@ class EssentialTool(Tool[PingInput, PingOutput]):
+     input_model = PingInput
+     output_model = PingOutput
+     name = 'ping'
+-    version = '0.2.0'
++    version = '0.3.0'
+     description = 'Check ICMP reachability using the operating system ping utility.'
+     requirements = Requirements(tool='pip', format='requirements.txt', content='twylt>=1.1.0,<2\npydantic>=2,<3\n')
+     few_shots = [{'input': {'host': '127.0.0.1', 'count': 1}, 'output': {'reachable': True, 'timed_out': False, 'returncode': 0, 'stdout': '', 'stderr': '', 'elapsed_seconds': 0.01}}]
+diff --git a/tools/sleep/tool.py b/tools/sleep/tool.py
+index 5a507fc..3f4ccf1 100644
+--- a/tools/sleep/tool.py
++++ b/tools/sleep/tool.py
+@@ -20,7 +20,7 @@ class EssentialTool(Tool[SleepInput, SleepOutput]):
+     input_model = SleepInput
+     output_model = SleepOutput
+     name = 'sleep'
+-    version = '0.2.0'
++    version = '0.3.0'
+     description = 'Wait in real time.'
+     requirements = Requirements(tool='pip', format='requirements.txt', content='twylt>=1.1.0,<2\npydantic>=2,<3\n')
+     few_shots = [{'input': {'seconds': 1}, 'output': {'requested_seconds': 1, 'elapsed_seconds': 1.001}}]
+diff --git a/tools/web_search/tool.py b/tools/web_search/tool.py
+index 0d65a5f..e81585a 100644
+--- a/tools/web_search/tool.py
++++ b/tools/web_search/tool.py
+@@ -5,7 +5,11 @@ import urllib.parse
+ from typing import Literal
+ from pydantic import Field
+ from twylt.guardrails import check_network
+-from twylt_pack_essential.http import HttpInput, http, check_url
++# Shared code travels with the source pack; its location does not depend on cwd.
++import sys
++from pathlib import Path
++sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "shared"))
++from essential_common.http import HttpInput, http, check_url
+ 
+ from twylt import ContractModel as Model
+ 
+@@ -50,9 +54,9 @@ class EssentialTool(Tool[SearchInput, SearchOutput]):
+     input_model = SearchInput
+     output_model = SearchOutput
+     name = 'web_search'
+-    version = '0.2.0'
++    version = '0.3.0'
+     description = 'Search the web through a configured SearXNG JSON API.'
+-    requirements = Requirements(tool='pip', format='requirements.txt', content='twylt>=1.1.0,<2\npydantic>=2,<3\ntwylt-pack-essential==0.2.0\n')
++    requirements = Requirements(tool='pip', format='requirements.txt', content='twylt>=1.1.0,<2\npydantic>=2,<3\n')
+     few_shots = [{'input': {'query': 'TWYLT github'}, 'output': {'query': 'TWYLT github', 'page': 1, 'results': [], 'suggestions': [], 'number_of_results': 0}}]
+     input_schema_name = 'web_search.input'
+     input_schema_version = '1.0.0'
+diff --git a/tools/wget/tool.py b/tools/wget/tool.py
+index 65b042d..888ac34 100644
+--- a/tools/wget/tool.py
++++ b/tools/wget/tool.py
+@@ -1,6 +1,10 @@
+ from twylt import Tool, Requirements
+ from pydantic import Field
+-from twylt_pack_essential.http import HttpInput, HttpOutput, http
++# Shared code travels with the source pack; its location does not depend on cwd.
++import sys
++from pathlib import Path
++sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "shared"))
++from essential_common.http import HttpInput, HttpOutput, http
+ 
+ class WgetInput(HttpInput):
+     output_path: str = Field(description='Required destination inside TWYLT_WORKSPACE_ROOT.')
+@@ -9,9 +13,9 @@ class EssentialTool(Tool[WgetInput, HttpOutput]):
+     input_model = WgetInput
+     output_model = HttpOutput
+     name = 'wget'
+-    version = '0.2.0'
++    version = '0.3.0'
+     description = 'Download an HTTP(S) resource to a workspace file.'
+-    requirements = Requirements(tool='pip', format='requirements.txt', content='twylt>=1.1.0,<2\npydantic>=2,<3\ntwylt-pack-essential==0.2.0\n')
++    requirements = Requirements(tool='pip', format='requirements.txt', content='twylt>=1.1.0,<2\npydantic>=2,<3\n')
+     few_shots = [{'input': {'url': 'https://example.com/', 'output_path': 'example.html'}, 'output': {'status': 200, 'ok': True, 'headers': {}, 'bytes_received': 0, 'sha256': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', 'output_path': '/example.html', 'elapsed_seconds': 0.1}}]
+     input_schema_name = 'wget.input'
+     input_schema_version = '1.0.0'

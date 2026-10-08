@@ -13,9 +13,9 @@ from unittest.mock import patch
 from pydantic import ValidationError
 
 BASE = Path(__file__).resolve().parents[1]
-sys.path.insert(0,str(BASE/'src'))
+sys.path.insert(0,str(BASE/'shared'))
 from types import SimpleNamespace
-from twylt_pack_essential import http as h
+from essential_common import http as h
 from twylt.guardrails import WorkspaceDenied
 c = SimpleNamespace(**{k:v for k,v in vars(h).items() if not k.startswith('__')})
 c.WorkspaceDenied = WorkspaceDenied

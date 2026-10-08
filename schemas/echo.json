@@ -1,7 +1,7 @@
 {
   "format_version": "1.8",
   "name": "echo",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Return the request text unchanged.",
   "requirements": {
     "tool": "pip",

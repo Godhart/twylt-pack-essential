@@ -16,7 +16,7 @@ class EssentialTool(Tool[EchoInput, EchoOutput]):
     input_model = EchoInput
     output_model = EchoOutput
     name = 'echo'
-    version = '0.2.0'
+    version = '0.3.0'
     description = 'Return the request text unchanged.'
     requirements = Requirements(tool='pip', format='requirements.txt', content='twylt>=1.1.0,<2\npydantic>=2,<3\n')
     few_shots = [{'input': {'text': 'Hello, TWYLT!'}, 'output': {'text': 'Hello, TWYLT!'}}]

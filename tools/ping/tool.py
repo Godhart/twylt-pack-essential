@@ -47,7 +47,7 @@ class EssentialTool(Tool[PingInput, PingOutput]):
     input_model = PingInput
     output_model = PingOutput
     name = 'ping'
-    version = '0.2.0'
+    version = '0.3.0'
     description = 'Check ICMP reachability using the operating system ping utility.'
     requirements = Requirements(tool='pip', format='requirements.txt', content='twylt>=1.1.0,<2\npydantic>=2,<3\n')
     few_shots = [{'input': {'host': '127.0.0.1', 'count': 1}, 'output': {'reachable': True, 'timed_out': False, 'returncode': 0, 'stdout': '', 'stderr': '', 'elapsed_seconds': 0.01}}]

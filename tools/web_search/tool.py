@@ -5,7 +5,11 @@ import urllib.parse
 from typing import Literal
 from pydantic import Field
 from twylt.guardrails import check_network
-from twylt_pack_essential.http import HttpInput, http, check_url
+# Shared code travels with the source pack; its location does not depend on cwd.
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "shared"))
+from essential_common.http import HttpInput, http, check_url
 
 from twylt import ContractModel as Model
 
@@ -50,9 +54,9 @@ class EssentialTool(Tool[SearchInput, SearchOutput]):
     input_model = SearchInput
     output_model = SearchOutput
     name = 'web_search'
-    version = '0.2.0'
+    version = '0.3.0'
     description = 'Search the web through a configured SearXNG JSON API.'
-    requirements = Requirements(tool='pip', format='requirements.txt', content='twylt>=1.1.0,<2\npydantic>=2,<3\ntwylt-pack-essential==0.2.0\n')
+    requirements = Requirements(tool='pip', format='requirements.txt', content='twylt>=1.1.0,<2\npydantic>=2,<3\n')
     few_shots = [{'input': {'query': 'TWYLT github'}, 'output': {'query': 'TWYLT github', 'page': 1, 'results': [], 'suggestions': [], 'number_of_results': 0}}]
     input_schema_name = 'web_search.input'
     input_schema_version = '1.0.0'
